@@ -1,4 +1,4 @@
-# Talk to Data — Seamless Self-Service Intelligence
+# Talk to Data 
 
 **Natural language → SQL → Insights.** A Graph-RAG powered text-to-SQL system for banking microservice data, built for NatWest Code for Purpose 2026.
 
@@ -24,6 +24,36 @@
 ![Talk to Data Pipeline](docs/pipeline.svg)
 
 ---
+
+## How It Works
+
+The pipeline runs in two phases — **ingestion** (done once at startup) and **query** (runs on every question).
+
+**Ingestion**
+ 
+1. `loader.py` reads the banking schema JSONL files and converts them to CREATE TABLE DDL statements and plain-English documentation strings.
+2. `embedder.py` embeds these into three ChromaDB collections (DDL, docs, Q-SQL pairs) using `all-MiniLM-L6-v2` running locally.
+3. `graph_builder.py` connects to Neo4j AuraDB and populates 25 Table nodes with 25 FK-backed directed edges, storing the exact SQL join condition on every edge.
+
+**Query**
+ 
+4. `schema_linker.py` receives the user question, runs vector similarity search on ChromaDB, expands the result set using 1-hop Neo4j graph traversal to catch missing intermediate tables, and returns a `SchemaContext` object with DDLs, join paths, docs, and few-shot examples.
+5. `sql_gen.py` constructs a 6-layer prompt from the context and calls Groq's `llama-3.3-70b-versatile`. SQL is extracted, validated, and retried up to 3 times if invalid.
+
+---
+ 
+## Features
+ 
+The following are **implemented and working**:
+ 
+- Schema ingestion — 25-table banking schema loaded from JSONL into ChromaDB and Neo4j on startup
+- Three ChromaDB collections — separate DDL, documentation, and Q-SQL pair collections following Vanna's training data architecture
+- Graph-RAG schema linking — vector retrieval combined with Neo4j `shortestPath` traversal for multi-hop cross-service JOIN discovery
+- FK-validated graph — all 25 relationships have backing foreign keys; join conditions are stored on Neo4j edges and passed verbatim to the LLM
+- Groq LLM SQL generation — structured 6-layer prompt (schema, joins, docs, examples, question), deterministic at temperature 0
+- SQL self-correction — up to 3 retry attempts; each retry appends the execution error to the prompt
+- Seed Q-SQL pairs — 10 banking-specific question-SQL examples loaded into ChromaDB at startup
+- Semantic layer hook — `add_documentation()` interface for user-confirmed metric definitions
 
 ## What It Does
 
