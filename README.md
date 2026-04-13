@@ -95,7 +95,6 @@ Twenty-five tables across five banking services (`CustSrv`, `CoreSrv`, `WealthSr
 **Partially implemented or in progress:**
  
 - DuckDB SQL execution — the executor is designed; synthetic data seeding is not yet complete
-- Flask + React frontend — under active development by a teammate; not yet integrated end-to-end
 - PII column masking — scaffolded in `src/privacy/`; masking logic not yet written
 - Correction storage loop — corrected Q-SQL pairs are not yet written back to ChromaDB after a user fix
 
