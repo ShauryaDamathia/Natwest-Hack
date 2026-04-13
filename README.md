@@ -108,7 +108,7 @@ cd talk-to-data
  
 python -m venv envdata
 envdata\Scripts\activate        # Windows
-# source venv/bin/activate   # macOS/Linux
+# source envdata/bin/activate   # macOS/Linux
  
 pip install -r requirements.txt
 ```
